@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photoelectric Effect Laboratory Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>Photoelectric Effect Laboratory Simulator</h1>
+            <p>University Laboratory Manual Implementation • Research-Grade Precision • Einstein's Equation Verification</p>
+        </header>
+
+        <main class="app-main">
+            <!-- Left Panel - Laboratory Controls -->
+            <div class="control-panel">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Laboratory Apparatus</h3>
+                        <div class="precision-indicator">
+                            <span class="status status--success">6V Supply • μA Precision</span>
+                        </div>
+                    </div>
+                    <div class="card__body">
+                        <div class="form-group">
+                            <label class="form-label" for="material-select">Photocathode Material</label>
+                            <select id="material-select" class="form-control">
+                                <option value="0">Cesium (Cs) - φ = 2.10 eV</option>
+                                <option value="1">Sodium (Na) - φ = 2.28 eV</option>
+                                <option value="2">Potassium (K) - φ = 2.30 eV</option>
+                                <option value="3">Aluminum (Al) - φ = 4.08 eV</option>
+                                <option value="4">Copper (Cu) - φ = 4.70 eV</option>
+                                <option value="5">Silver (Ag) - φ = 4.73 eV</option>
+                                <option value="6">Gold (Au) - φ = 5.10 eV</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="filter-select">Color Filter Selection</label>
+                            <select id="filter-select" class="form-control">
+                                <option value="blue">Blue Filter - 438 nm</option>
+                                <option value="green">Green Filter - 565 nm</option>
+                                <option value="yellow">Yellow Filter - 578 nm</option>
+                                <option value="orange">Orange Filter - 598 nm</option>
+                                <option value="custom">Custom Wavelength</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="custom-wavelength-group" style="display: none;">
+                            <label class="form-label" for="wavelength-slider">
+                                Wavelength: <span id="wavelength-value">438</span> nm
+                            </label>
+                            <input type="range" id="wavelength-slider" class="form-control" 
+                                   min="200" max="700" value="438" step="1">
+                        </div>
+
+                        <div class="wavelength-display">
+                            <div class="filter-info">
+                                <div class="info-row">
+                                    <span>Frequency:</span> <span id="frequency-value">6.849</span> × 10¹⁴ Hz
+                                </div>
+                                <div class="info-row">
+                                    <span>Photon Energy:</span> <span id="photon-energy-display">2.833</span> eV
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="voltage-slider">
+                                Applied Voltage: <span id="voltage-value">0.00</span> V
+                            </label>
+                            <input type="range" id="voltage-slider" class="form-control" 
+                                   min="-5" max="5" step="0.01" value="0">
+                            <div class="voltage-info">
+                                <small>Forward: +5V to 0V | Reverse: 0V to -5V</small>
+                            </div>
+                        </div>
+
+                        <div class="measurement-info">
+                            <h4>High-Precision Measurement</h4>
+                            <div class="measurement-stat">
+                                <span>Measurements per point:</span>
+                                <strong>1000</strong>
+                            </div>
+                            <div class="measurement-stat">
+                                <span>Statistical Error:</span>
+                                <strong id="std-error">< 0.001%</strong>
+                            </div>
+                            <div class="measurement-stat">
+                                <span>Total measurements:</span>
+                                <strong id="measurement-count">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="switch-light" class="btn btn--primary btn--full-width btn--lg">
+                                🔬 Start Experiment
+                            </button>
+                            <button id="take-measurement" class="btn btn--secondary btn--full-width mt-8" disabled>
+                                📊 Take 1000 Measurements
+                            </button>
+                            <button id="auto-sweep" class="btn btn--outline btn--full-width mt-8" disabled>
+                                ⚡ Auto I-V Sweep
+                            </button>
+                        </div>
+
+                        <div class="button-group mt-16">
+                            <button id="reset-experiment" class="btn btn--secondary btn--full-width">
+                                🔄 Reset Experiment
+                            </button>
+                            <button id="export-data" class="btn btn--outline btn--full-width mt-8">
+                                📤 Export Data (CSV)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Energy Diagram & Setup -->
+            <div class="energy-diagram-panel">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>Energy Level Diagram - Einstein's Equation</h3>
+                        <div class="status-indicators">
+                            <div id="emission-status" class="status status--error">✗ No Emission</div>
+                            <div class="einstein-equation">E = hf = φ + KE<sub>max</sub></div>
+                        </div>
+                    </div>
+                    <div class="card__body">
+                        <div class="energy-diagram-container">
+                            <canvas id="energy-diagram" width="600" height="400"></canvas>
+                        </div>
+                        <div class="energy-values">
+                            <div class="energy-value">
+                                <label>Photon Energy (hf):</label>
+                                <span id="photon-energy-value">2.833 eV</span>
+                            </div>
+                            <div class="energy-value">
+                                <label>Work Function (φ):</label>
+                                <span id="work-function-value">2.10 eV</span>
+                            </div>
+                            <div class="energy-value">
+                                <label>Max KE (hf - φ):</label>
+                                <span id="max-ke-value">0.733 eV</span>
+                            </div>
+                            <div class="energy-value">
+                                <label>Stopping Potential (V<sub>s</sub>):</label>
+                                <span id="stopping-potential-display">0.733 V</span>
+                            </div>
+                            <div class="energy-value">
+                                <label>Threshold Frequency:</label>
+                                <span id="threshold-frequency">5.08 × 10¹⁴ Hz</span>
+                            </div>
+                            <div class="energy-value">
+                                <label>Threshold Wavelength:</label>
+                                <span id="threshold-wavelength">591 nm</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laboratory Setup Animation -->
+                <div class="card mt-16">
+                    <div class="card__header">
+                        <h3>Vacuum Photocell Setup</h3>
+                        <div class="apparatus-info">
+                            <span>6V Supply • Micro-Ammeter • Mercury Lamp • Colored Filters</span>
+                        </div>
+                    </div>
+                    <div class="card__body">
+                        <div class="setup-container">
+                            <canvas id="setup-diagram" width="600" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Measurements & Analysis -->
+            <div class="results-panel">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>I-V Characteristic Curve</h3>
+                        <div class="graph-controls">
+                            <button id="clear-graph" class="btn btn--sm btn--secondary">Clear</button>
+                            <span class="graph-status" id="graph-status">Ready for measurements</span>
+                        </div>
+                    </div>
+                    <div class="card__body">
+                        <div class="chart-container">
+                            <canvas id="iv-chart" height="280"></canvas>
+                        </div>
+                        <div class="analysis-results">
+                            <div class="result-item">
+                                <label>Stopping Potential (V<sub>s</sub>):</label>
+                                <span id="stopping-potential">0.000 V</span>
+                            </div>
+                            <div class="result-item">
+                                <label>Saturation Current:</label>
+                                <span id="saturation-current">0.000 μA</span>
+                            </div>
+                            <div class="result-item">
+                                <label>Current Reading:</label>
+                                <span id="current-value">0.000 μA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-16">
+                    <div class="card__header">
+                        <h3>Planck's Constant Determination</h3>
+                        <div class="formula-display">h = (eV<sub>s</sub>λ) / C</div>
+                    </div>
+                    <div class="card__body">
+                        <div class="chart-container">
+                            <canvas id="frequency-chart" height="250"></canvas>
+                        </div>
+                        <div class="planck-analysis">
+                            <div class="result-item">
+                                <label>Calculated h:</label>
+                                <span id="calculated-planck">4.136 × 10⁻¹⁵ eV·s</span>
+                            </div>
+                            <div class="result-item">
+                                <label>Theoretical h:</label>
+                                <span>4.136 × 10⁻¹⁵ eV·s</span>
+                            </div>
+                            <div class="result-item">
+                                <label>Accuracy:</label>
+                                <span id="accuracy">100.0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-16">
+                    <div class="card__header">
+                        <h3>Measurement Data</h3>
+                    </div>
+                    <div class="card__body">
+                        <div class="live-reading">
+                            <div class="reading-label">Live Current</div>
+                            <div class="reading-value" id="live-current">0.000 μA</div>
+                            <div class="reading-precision">±<span id="current-uncertainty">0.001</span> μA</div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table id="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Filter</th>
+                                        <th>λ (nm)</th>
+                                        <th>f (10¹⁴ Hz)</th>
+                                        <th>V<sub>s</sub> (V)</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-16">
+                    <div class="card__header">
+                        <h3>Laboratory Log</h3>
+                    </div>
+                    <div class="card__body">
+                        <div id="experiment-log" class="experiment-log">
+                            <div class="log-entry">
+                                <span class="log-time">Ready</span>
+                                <span class="log-message">Photoelectric effect laboratory simulator initialized</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
